@@ -1,0 +1,50 @@
+{
+  "name": "keyauth-system",
+  "version": "1.0.0",
+  "description": "Sistema completo de verificação de chave de acesso similar ao KeyAuth.cc - Máxima Segurança",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "test": "node tests/test.js",
+    "test:security": "node tests/security/security.test.js",
+    "audit": "npm audit --production",
+    "audit:fix": "npm audit fix",
+    "reorganize": "node scripts/reorganize.js",
+    "update-imports": "node scripts/update-imports.js"
+  },
+  "keywords": ["keyauth", "authentication", "license", "api", "security"],
+  "author": "SrStellar",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "_moduleAliases": {
+    "@config": "src/config",
+    "@core": "src/core",
+    "@services": "src/services",
+    "@controllers": "src/controllers",
+    "@middleware": "src/middleware",
+    "@routes": "src/routes",
+    "@utils": "src/utils",
+    "@models": "src/models",
+    "@types": "src/types"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1",
+    "sqlite3": "^5.1.6",
+    "crypto-js": "^4.1.1",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "module-alias": "^2.2.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

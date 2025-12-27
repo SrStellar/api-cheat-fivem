@@ -1,0 +1,465 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "KeyAuth API",
+    "description": "Sistema completo de autenticação e verificação de chaves de acesso",
+    "version": "1.0.0",
+    "contact": {
+      "name": "SrStellar",
+      "url": "https://github.com/SrStellar"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor de desenvolvimento"
+    },
+    {
+      "url": "https://api.exemplo.com",
+      "description": "Servidor de produção"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Autenticação",
+      "description": "Endpoints de registro, login e tokens"
+    },
+    {
+      "name": "Validação",
+      "description": "Endpoints públicos de validação de chaves"
+    },
+    {
+      "name": "Chaves de API",
+      "description": "Gerenciamento de chaves de API"
+    },
+    {
+      "name": "Licenças",
+      "description": "Gerenciamento de licenças e ativações"
+    },
+    {
+      "name": "Administração",
+      "description": "Endpoints restritos a administradores"
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Registrar novo usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password", "confirmPassword"],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "joao_silva"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "joao@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "senha123456"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "senha123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário registrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "string", "example": "REGISTRATION_SUCCESS" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userId": { "type": "string" },
+                        "username": { "type": "string" },
+                        "email": { "type": "string" },
+                        "createdAt": { "type": "string", "format": "date-time" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos ou usuário já existe"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Fazer login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "joao_silva"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "senha123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "string", "example": "LOGIN_SUCCESS" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userId": { "type": "string" },
+                        "username": { "type": "string" },
+                        "email": { "type": "string" },
+                        "token": { "type": "string" },
+                        "expiresIn": { "type": "number", "example": 86400 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Usuário ou senha inválidos"
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Renovar token JWT",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token renovado com sucesso"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/api/validate/key": {
+      "post": {
+        "tags": ["Validação"],
+        "summary": "Validar chave de API ou licença",
+        "description": "Endpoint público - não requer autenticação",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["key", "type"],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "example": "KA_abc123_def456_789ghi"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["api", "license"],
+                    "example": "api"
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "example": "device-001",
+                    "description": "Obrigatório para validação de licença"
+                  },
+                  "hwid": {
+                    "type": "string",
+                    "example": "hardware-id-hash",
+                    "description": "Obrigatório para validação de licença"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chave válida"
+          },
+          "401": {
+            "description": "Chave inválida, expirada ou limite de ativações atingido"
+          }
+        }
+      }
+    },
+    "/api/keys/create": {
+      "post": {
+        "tags": ["Chaves de API"],
+        "summary": "Criar nova chave de API",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "Minha Chave"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Chave para meu aplicativo"
+                  },
+                  "expiresIn": {
+                    "type": "number",
+                    "description": "Tempo em milissegundos",
+                    "example": 7776000000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chave criada com sucesso"
+          },
+          "400": {
+            "description": "Nome inválido"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        }
+      }
+    },
+    "/api/keys/list": {
+      "get": {
+        "tags": ["Chaves de API"],
+        "summary": "Listar chaves de API do usuário",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de chaves"
+          }
+        }
+      }
+    },
+    "/api/keys/{keyId}/deactivate": {
+      "post": {
+        "tags": ["Chaves de API"],
+        "summary": "Desativar chave de API",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chave desativada"
+          }
+        }
+      }
+    },
+    "/api/keys/{keyId}/stats": {
+      "get": {
+        "tags": ["Chaves de API"],
+        "summary": "Obter estatísticas de chave",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estatísticas da chave"
+          }
+        }
+      }
+    },
+    "/api/licenses/create": {
+      "post": {
+        "tags": ["Licenças"],
+        "summary": "Criar nova licença",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId"],
+                "properties": {
+                  "productId": {
+                    "type": "string",
+                    "example": "produto-fivem"
+                  },
+                  "maxActivations": {
+                    "type": "number",
+                    "example": 2
+                  },
+                  "expiresIn": {
+                    "type": "number",
+                    "description": "Tempo em milissegundos",
+                    "example": 2592000000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Licença criada com sucesso"
+          }
+        }
+      }
+    },
+    "/api/licenses/list": {
+      "get": {
+        "tags": ["Licenças"],
+        "summary": "Listar licenças do usuário",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de licenças"
+          }
+        }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "tags": ["Administração"],
+        "summary": "Obter estatísticas do sistema",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estatísticas gerais"
+          },
+          "403": {
+            "description": "Acesso restrito a administradores"
+          }
+        }
+      }
+    },
+    "/api/admin/logs": {
+      "get": {
+        "tags": ["Administração"],
+        "summary": "Listar logs do sistema",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "number", "default": 100 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": { "type": "number", "default": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logs do sistema"
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": ["Administração"],
+        "summary": "Listar todos os usuários",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuários"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
